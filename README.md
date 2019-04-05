@@ -33,8 +33,10 @@ Very easy usage: Create class (1) and run (2).
 - The function **must not** be defined in the notebook! Please provide it in a separate file and import it (see above example)
 - Sometimes, it is maybe neccessary to run it in the following way:
 
-    if __name__ ==  '__main__':
-        l = LazyParallel(f, range(12))
-        l.run()
+
+        if __name__ ==  '__main__':
+              l = LazyParallel(f, range(12))
+              l.run()
+        
         
 However, I never encountered that.
