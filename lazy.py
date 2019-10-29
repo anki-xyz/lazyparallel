@@ -68,12 +68,20 @@ class LazyParallel:
         cores : str, optional
             the number of cores used in parallel
             (the default is 'auto', which takes all available cores)
+        use_threads : bool, optional
+            uses threads instead of processes
+        threads : int, optional
+            number of threads/workers to be used in multithreading
         
         """
 
         self.cores = mp.cpu_count() if cores == 'auto' else cores
+
+        if threads < 1:
+            raise Exception("Threads should be higher or equal to 1.")
+
         self.threads = threads
-        self.use_threads = use_threads
+        self.use_threads = bool(use_threads)
 
         self.f = func
         self.f_name = func.__name__
@@ -133,10 +141,10 @@ class LazyParallel:
 
         if verbose:
             if self.use_threads:
-                print('Running {} on {:d} threads.'.format(self.f_name, self.threads))
+                print('Running {} concurrently on {:d} thread(s).'.format(self.f_name, self.threads))
 
             else:
-                print('Running {} in parallel on {:d} cores.'.format(self.f_name, self.cores))
+                print('Running {} in parallel on {:d} core(s).'.format(self.f_name, self.cores))
 
             print('Number of tasks: {:d}'.format(num_tasks))
 
@@ -162,8 +170,10 @@ class LazyParallel:
                 # Show progress
                 s = '\r[{:03.0f}%]   eta {} '.format(progress,
                                                     eta_formatted)
-                sys.stderr.flush()
-                sys.stderr.write(s.ljust(100))
+
+                print(s.ljust(100), end="\r")
+                # sys.stderr.flush()
+                # sys.stderr.write(s.ljust(100))
 
             rl.append(r)
 
@@ -191,7 +201,7 @@ def f_sleep(i):
     return i
 
 def f_cpu_heavy(i):
-    """Function that does nothing than sleeping for 1 second
+    """Function that does some long computations
     
     Parameters
     ----------
