@@ -1,54 +1,9 @@
 import numpy as np
 import multiprocessing as mp
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from time import sleep, time
+from time import sleep
 import sys
-
-
-def timeformat(t, second_precision=0):
-    """Given a total number of seconds, returns a dictionary
-    with the corresponding hours, minutes and remaining seconds,
-    and a formatted string.
-    
-    Parameters
-    ----------
-    t : float
-        total number of seconds
-    second_precision : int, optional
-        decimals of seconds (the default is 0, which renders 1.27 s  to 1 s)
-    
-    Returns
-    -------
-    dictionary
-        s: formatted string
-        hours: hours
-        minutes: minutes
-        seconds: remaining seconds
-    """
-
-    hours   = t // (60 * 60)
-
-    if hours:
-        t -= hours * (60 * 60)
-
-    minutes = t // 60
-
-    seconds = t % 60
-
-    s = ""
-
-    if hours:
-        s += "{:.0f} h ".format(hours)
-
-    if minutes:
-        s += "{:.0f} min ".format(minutes)
-
-    s += ("{:."+str(second_precision)+"f} s ").format(seconds)
-
-    return {'s': s,
-            'hours': hours,
-            'minutes': minutes,
-            'seconds': seconds}
+from tqdm import tqdm
 
 
 class LazyParallel:
@@ -87,7 +42,7 @@ class LazyParallel:
         self.f_name = func.__name__
         self.i = iterable
 
-    def run(self, func=None, iterable=None, verbose=True):
+    def run(self, func=None, iterable=None):
         """Runs function with items from iterable in parallel
         
         Parameters
@@ -150,36 +105,8 @@ class LazyParallel:
 
         rl = []
 
-        t = np.array([0]*(num_tasks+1))
-        t[0] = time()
-
-        for i, r in enumerate(p.map(func, iterable), 1):
-            # If one would like to see progress
-            if verbose:
-                # Set current time
-                t[i] = time()
-                # Average time per cycle
-                av = np.mean(np.diff(t[:i+1]))
-                # Average time for remaining cycles:
-                eta = av * (num_tasks - i)
-                eta_formatted = timeformat(eta)['s']
-
-                # Progress in percent
-                progress = i/num_tasks*100
-
-                # Show progress
-                s = '\r[{:03.0f}%]   eta {} '.format(progress,
-                                                    eta_formatted)
-
-                print(s.ljust(100), end="\r")
-                # sys.stderr.flush()
-                # sys.stderr.write(s.ljust(100))
-
+        for r in tqdm(p.map(func, iterable), total=num_tasks):
             rl.append(r)
-
-        if verbose:
-            print()
-            print("Time elapsed: {}".format(timeformat(t[-1]-t[0])['s']))
 
         return rl
 
@@ -231,7 +158,7 @@ if __name__ == '__main__':
         print("Using processes...")
         cores = mp.cpu_count()
         l = LazyParallel(f, range(16), cores=4)
-        r = l.run(verbose=True)
+        r = l.run()
         print(r)
         # [0, 1, 2, 3, ...]
 
@@ -239,7 +166,7 @@ if __name__ == '__main__':
 
         print("Using threads...")
         l = LazyParallel(f, range(16), threads=8, use_threads=True)
-        r = l.run(verbose=True)
+        r = l.run()
         print(r)
         # [0, 1, 2, 3, ...]
 
