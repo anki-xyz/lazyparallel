@@ -3,11 +3,12 @@ A class to easily run a function in parallel with runtime estimation
 
 ## Minimal example
 
-    from lazy import LazyParallel, f
-    # f only sleeps for 1 s and returns the iterator
-    # specify function (f) and the iterable (here, range(12))
-    # it uses internally imap (so only one (!) argument per function)
-    # the output is ordered.
+    from lazy import LazyParallel, f_cpu_heavy
+    # f_cpu_heavy performs heavy computations and returns the iterator
+    # Specify function (f_cpu_heavy) and the iterable (here, range(12)).
+    # It uses internally ```concurrent.futures``` ```map``` 
+    # (similar behavior as ```multiprocessing.imap```, so only one (!) argument per function).
+    # The output is ordered.
     l = LazyParallel(f, range(12))
     l.run(verbose=True)
     
@@ -16,16 +17,19 @@ creates the following (final) output on my computer with four cores (2 real, 2 h
     Running f in parallel on 4 cores.
     Number of tasks: 12
     [100%]   eta 0 s       
+    Time elapsed 14 s
     
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 ## Settings
 
-    LazyParallel(function, iterable, cores='auto')
+    LazyParallel(function, iterable, cores='auto', use_threads=False, threads=1)
    
    
 By default, all available cores are used ('auto'). 
 Otherwise, just specify the number of cores.
+If your problem is IO-bound, you can use threads instead (```use_threads=True```).
+Then, the cores are ignored and the function uses the number of threads provided.
 Very easy usage: Create class (1) and run (2).
 
 ## Notes for juptyer notebook
