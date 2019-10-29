@@ -6,8 +6,8 @@ A class to easily run a function in parallel with runtime estimation
     from lazy import LazyParallel, f_cpu_heavy
     # f_cpu_heavy performs heavy computations and returns the iterator
     # Specify function (f_cpu_heavy) and the iterable (here, range(12)).
-    # It uses internally ```concurrent.futures``` ```map``` 
-    # (similar behavior as ```multiprocessing.imap```, so only one (!) argument per function).
+    # It uses internally from concurrent.futures the map function 
+    # (similar behavior as multiprocessing.imap, so only one (!) argument per function).
     # The output is ordered.
     l = LazyParallel(f, range(12))
     l.run(verbose=True)
